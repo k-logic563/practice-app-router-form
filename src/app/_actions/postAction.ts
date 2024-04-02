@@ -1,40 +1,25 @@
-'use server'
+"use server";
 
-import { redirect } from 'next/navigation'
-import { z } from 'zod'
+import { parseWithZod } from "@conform-to/zod";
+import { redirect } from "next/navigation";
 
-const schema = z.object({
-  name: z.string().min(1, {
-    message: "名前は必須項目です"
-  }),
-  email: z.string()
-    .email({
-      message: "メールアドレスの形式が正しくありません"
-    }),
-  message: z.string().min(1, {
-    message: "問い合わせ内容は必須項目です"
-  }),
-})
+import { contactSchema } from "../_constants/schema";
 
-export async function sendMessage (prev: any, formData: FormData) {
-  const validatedFields = schema.safeParse({
-    name: formData.get('name'),
-    email: formData.get('email'),
-    message: formData.get('message'),
-  })
+export async function sendMessage(_: unknown, formData: FormData) {
+  const submission = parseWithZod(formData, {
+    schema: contactSchema,
+  });
 
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    }
+  if (submission.status !== "success") {
+    return submission.reply();
   }
 
   // Send message to your server
   // ...
 
   // temporarily wait for 3 seconds
-  await new Promise(resolve => setTimeout(resolve, 3000))
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // redirect to thanks page
-  redirect('/thanks')
+  redirect("/thanks");
 }

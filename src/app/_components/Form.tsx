@@ -1,53 +1,49 @@
-'use client';
+"use client";
 
-import React from 'react'
-import { Form, Button, Alert } from 'react-bootstrap'
-import { useFormState, useFormStatus } from 'react-dom'
+import { getFormProps, useForm } from "@conform-to/react";
+import { parseWithZod } from "@conform-to/zod";
+import type React from "react";
+import { useFormState, useFormStatus } from "react-dom";
 
-import { sendMessage } from '../_actions/postAction'
+import { sendMessage } from "../_actions/postAction";
+import { contactSchema } from "../_constants/schema";
 
-const SubmitButton = () => {
-  const status = useFormStatus()
+function Button(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const { pending } = useFormStatus();
 
-  return (
-    <Button variant="primary" type="submit" disabled={status.pending}>
-      { status.pending ? '送信中...' : '送信'}
-    </Button>
-  )
+  return <button {...props} disabled={pending || props.disabled} />;
 }
 
 const ContactForm = () => {
-  const [state, formAction] = useFormState(sendMessage, {})
+  const [lastResult, action] = useFormState(sendMessage, undefined);
+  const [form, fields] = useForm({
+    lastResult,
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: contactSchema });
+    },
+    shouldValidate: "onBlur",
+  });
 
   return (
-    <>
-      { state?.errors && (
-        <Alert variant="danger">
-          <Alert.Heading>フォーム内容を確認してください</Alert.Heading>
-          <ul className="mb-0">
-            {Object.entries(state.errors).map(([key, value]) => (
-              <li key={key}>{value}</li>
-            ))}
-          </ul>
-        </Alert>
-      )}
-      <Form action={formAction}>
-        <Form.Group className="mb-3" controlId="name">
-          <Form.Label>名前</Form.Label>
-          <Form.Control type="text" name="name" placeholder="サンプル太郎" />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="email">
-          <Form.Label>メールアドレス</Form.Label>
-          <Form.Control type="email" name="email" placeholder="name@example.com" />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="message">
-          <Form.Label>問い合わせ内容</Form.Label>
-          <Form.Control as="textarea" name="message" rows={3} />
-        </Form.Group>
-        <SubmitButton />
-      </Form>
-    </>
-  )
-}
+    <form action={action} {...getFormProps(form)}>
+      <div>
+        <label htmlFor="name">Name</label>
+        <input type="text" id="name" name={fields.name.name} />
+        <div>{fields.name.errors}</div>
+      </div>
+      <div>
+        <label htmlFor="email">Email</label>
+        <input type="email" id="email" name={fields.email.name} />
+        <div>{fields.email.errors}</div>
+      </div>
+      <div>
+        <label htmlFor="message">Message</label>
+        <textarea id="message" name={fields.message.name} />
+        <div>{fields.message.errors}</div>
+      </div>
+      <Button>Send</Button>
+    </form>
+  );
+};
 
-export default ContactForm
+export default ContactForm;

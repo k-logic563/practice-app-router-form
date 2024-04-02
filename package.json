@@ -6,17 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "check": "biome check --apply ./src"
   },
   "dependencies": {
-    "bootstrap": "^5.3.3",
+    "@conform-to/react": "^1.0.6",
+    "@conform-to/zod": "^1.0.6",
     "next": "14.1.3",
     "react": "^18",
-    "react-bootstrap": "^2.10.1",
     "react-dom": "^18",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.6.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
